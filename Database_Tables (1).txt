@@ -1,0 +1,124 @@
+-- Create Database
+CREATE DATABASE FarmingDB;
+GO
+
+USE FarmingDB;
+GO
+
+-- Farmers Table
+CREATE TABLE TBLFarmers (
+    FarmerID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Address NVARCHAR(255),
+    Phone NVARCHAR(15),
+    Email NVARCHAR(100) UNIQUE,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Crops Table
+CREATE TABLE TBLCrops (
+    CropID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Season NVARCHAR(50),
+    Price DECIMAL(10,2) NOT NULL,
+    Stock INT DEFAULT 0,
+    FarmerID INT,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (FarmerID) REFERENCES TBLFarmers(FarmerID) ON DELETE SET NULL
+);
+
+-- Livestock Table
+CREATE TABLE TBLLivestock (
+    LivestockID INT IDENTITY(1,1) PRIMARY KEY,
+    Type NVARCHAR(100) NOT NULL,
+    Breed NVARCHAR(100),
+    Age INT,
+    Price DECIMAL(10,2) NOT NULL,
+    Stock INT DEFAULT 0,
+    FarmerID INT,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (FarmerID) REFERENCES TBLFarmers(FarmerID) ON DELETE SET NULL
+);
+
+-- Equipment Table
+CREATE TABLE TBLEquipment (
+    EquipmentID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(255),
+    PurchaseDate DATE,
+    Price DECIMAL(10,2) NOT NULL,
+    Stock INT DEFAULT 0,
+    FarmerID INT,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (FarmerID) REFERENCES TBLFarmers(FarmerID) ON DELETE SET NULL
+);
+
+-- Transactions Table
+CREATE TABLE TBLTransactions (
+    TransactionID INT IDENTITY(1,1) PRIMARY KEY,
+    FarmerID INT,
+    CropID INT,
+    LivestockID INT,
+    EquipmentID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentMethod NVARCHAR(50) CHECK (PaymentMethod IN ('Cash', 'Credit Card', 'Bank Transfer')),
+    TransactionDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (FarmerID) REFERENCES TBLFarmers(FarmerID) ON DELETE CASCADE,
+    FOREIGN KEY (CropID) REFERENCES TBLCrops(CropID) ON DELETE SET NULL,
+    FOREIGN KEY (LivestockID) REFERENCES TBLLivestock(LivestockID) ON DELETE SET NULL,
+    FOREIGN KEY (EquipmentID) REFERENCES TBLEquipment(EquipmentID) ON DELETE SET NULL
+);
+
+-- Users Table (For Website Management)
+CREATE TABLE TBLUsers (
+    UserID INT IDENTITY(1,1) PRIMARY KEY,
+    Username NVARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(100) UNIQUE NOT NULL,
+    Role NVARCHAR(50) NOT NULL CHECK (Role IN ('Admin', 'Farmer', 'Customer')),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Orders Table (For Website Transactions)
+CREATE TABLE TBLOrders (
+    OrderID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT,
+    TransactionID INT,
+    TotalAmount DECIMAL(10,2) NOT NULL,
+    OrderDate DATETIME DEFAULT GETDATE(),
+    Status NVARCHAR(50) CHECK (Status IN ('Pending', 'Completed', 'Cancelled')),
+    FOREIGN KEY (UserID) REFERENCES TBLUsers(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (TransactionID) REFERENCES TBLTransactions(TransactionID) ON DELETE SET NULL
+);
+
+-- Reviews Table (For Product and Service Reviews)
+CREATE TABLE TBLReviews (
+    ReviewID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT,
+    FarmerID INT,
+    Rating INT CHECK (Rating BETWEEN 1 AND 5),
+    Comment NVARCHAR(500),
+    ReviewDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserID) REFERENCES TBLUsers(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (FarmerID) REFERENCES TBLFarmers(FarmerID) ON DELETE SET NULL
+);
+
+-- Website Content Table (For Managing Website Content)
+CREATE TABLE TBLWebsiteContent (
+    ContentID INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(255) NOT NULL,
+    Content TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Payments Table
+CREATE TABLE TBLPayments (
+    PaymentID INT IDENTITY(1,1) PRIMARY KEY,
+    UserID INT,
+    OrderID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentDate DATETIME DEFAULT GETDATE(),
+    PaymentStatus NVARCHAR(50) CHECK (PaymentStatus IN ('Pending', 'Completed', 'Failed')),
+    FOREIGN KEY (UserID) REFERENCES TBLUsers(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (OrderID) REFERENCES TBLOrders(OrderID) ON DELETE CASCADE
+);
