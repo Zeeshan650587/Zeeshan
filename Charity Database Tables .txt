@@ -1,0 +1,91 @@
+-- Create database
+CREATE DATABASE CharityDB;
+GO
+
+USE CharityDB;
+GO
+
+-- Table for Donors
+CREATE TABLE Donors (
+    DonorID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(255) UNIQUE,
+    Phone NVARCHAR(20),
+    Address NVARCHAR(MAX),
+    DonationAmount DECIMAL(10,2) DEFAULT 0.00,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Table for Donations
+CREATE TABLE Donations (
+    DonationID INT IDENTITY(1,1) PRIMARY KEY,
+    DonorID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentMethod NVARCHAR(50),
+    DonationDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (DonorID) REFERENCES Donors(DonorID) ON DELETE SET NULL
+);
+
+-- Table for Beneficiaries
+CREATE TABLE Beneficiaries (
+    BeneficiaryID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Phone NVARCHAR(20),
+    Address NVARCHAR(MAX),
+    AidReceived DECIMAL(10,2) DEFAULT 0.00,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Table for Volunteers
+CREATE TABLE Volunteers (
+    VolunteerID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(255) UNIQUE,
+    Phone NVARCHAR(20),
+    Skills NVARCHAR(MAX),
+    Availability NVARCHAR(100),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Table for Charity Events
+CREATE TABLE Events (
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX),
+    EventDate DATETIME,
+    Location NVARCHAR(255),
+    Budget DECIMAL(10,2),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- Table for Expenses
+CREATE TABLE Expenses (
+    ExpenseID INT IDENTITY(1,1) PRIMARY KEY,
+    EventID INT,
+    Description NVARCHAR(MAX),
+    Amount DECIMAL(10,2) NOT NULL,
+    ExpenseDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (EventID) REFERENCES Events(EventID) ON DELETE SET NULL
+);
+
+-- Table for Donations to Beneficiaries
+CREATE TABLE BeneficiaryDonations (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    BeneficiaryID INT,
+    DonationID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    DistributionDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (BeneficiaryID) REFERENCES Beneficiaries(BeneficiaryID) ON DELETE SET NULL,
+    FOREIGN KEY (DonationID) REFERENCES Donations(DonationID) ON DELETE SET NULL
+);
+
+-- Table for Volunteer Assignments
+CREATE TABLE VolunteerAssignments (
+    AssignmentID INT IDENTITY(1,1) PRIMARY KEY,
+    VolunteerID INT,
+    EventID INT,
+    Role NVARCHAR(255),
+    AssignedDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (VolunteerID) REFERENCES Volunteers(VolunteerID) ON DELETE CASCADE,
+    FOREIGN KEY (EventID) REFERENCES Events(EventID) ON DELETE CASCADE
+);
