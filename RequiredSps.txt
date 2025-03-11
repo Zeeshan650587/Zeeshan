@@ -1,0 +1,631 @@
+-- Use the CharityDB database
+USE CharityDB;
+GO
+
+-- Drop existing table if it exists (optional)
+IF OBJECT_ID('Donors', 'U') IS NOT NULL
+    DROP TABLE Donors;
+GO
+
+-- Create Donors table
+CREATE TABLE Donors (
+    DonorID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(255) UNIQUE,
+    Phone NVARCHAR(20),
+    Address NVARCHAR(MAX),
+    DonationAmount DECIMAL(10,2) DEFAULT 0.00,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Drop existing stored procedures if they exist
+IF OBJECT_ID('InsertDonor', 'P') IS NOT NULL
+    DROP PROCEDURE InsertDonor;
+GO
+IF OBJECT_ID('GetAllDonors', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllDonors;
+GO
+IF OBJECT_ID('GetDonorByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetDonorByID;
+GO
+IF OBJECT_ID('UpdateDonor', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateDonor;
+GO
+IF OBJECT_ID('DeleteDonor', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteDonor;
+GO
+
+-- 1. Insert a Donor (Create)
+CREATE PROCEDURE InsertDonor
+    @Name NVARCHAR(255),
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Address NVARCHAR(MAX),
+    @DonationAmount DECIMAL(10,2)
+AS
+BEGIN
+    INSERT INTO Donors (Name, Email, Phone, Address, DonationAmount)
+    VALUES (@Name, @Email, @Phone, @Address, @DonationAmount);
+END;
+GO
+
+-- 2. Retrieve All Donors (Read)
+CREATE PROCEDURE GetAllDonors
+AS
+BEGIN
+    SELECT * FROM Donors;
+END;
+GO
+
+-- 3. Retrieve a Specific Donor by ID (Read)
+CREATE PROCEDURE GetDonorByID
+    @DonorID INT
+AS
+BEGIN
+    SELECT * FROM Donors WHERE DonorID = @DonorID;
+END;
+GO
+
+-- 4. Update a Donor (Update)
+CREATE PROCEDURE UpdateDonor
+    @DonorID INT,
+    @Name NVARCHAR(255),
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Address NVARCHAR(MAX),
+    @DonationAmount DECIMAL(10,2)
+AS
+BEGIN
+    UPDATE Donors
+    SET Name = @Name,
+        Email = @Email,
+        Phone = @Phone,
+        Address = @Address,
+        DonationAmount = @DonationAmount
+    WHERE DonorID = @DonorID;
+END;
+GO
+
+-- 5. Delete a Donor (Delete)
+CREATE PROCEDURE DeleteDonor
+    @DonorID INT
+AS
+BEGIN
+    DELETE FROM Donors WHERE DonorID = @DonorID;
+END;
+GO
+
+-- Example Usage:
+-- EXEC InsertDonor 'John Doe', 'john@example.com', '1234567890', '123 Street, City', 100.00;
+-- EXEC GetAllDonors;
+-- EXEC GetDonorByID 1;
+-- EXEC UpdateDonor 1, 'John Doe', 'john.doe@example.com', '9876543210', '456 Avenue, City', 200.00;
+-- EXEC DeleteDonor 1;
+
+
+
+
+
+-- Use the CharityDB database
+USE CharityDB;
+GO
+
+-- Drop existing table if it exists (optional)
+IF OBJECT_ID('Donations', 'U') IS NOT NULL
+    DROP TABLE Donations;
+GO
+
+-- Create Donations table
+CREATE TABLE Donations (
+    DonationID INT IDENTITY(1,1) PRIMARY KEY,
+    DonorID INT,
+    Amount DECIMAL(10,2) NOT NULL,
+    PaymentMethod NVARCHAR(50),
+    DonationDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (DonorID) REFERENCES Donors(DonorID) ON DELETE SET NULL
+);
+GO
+
+-- Drop existing stored procedures if they exist
+IF OBJECT_ID('InsertDonation', 'P') IS NOT NULL
+    DROP PROCEDURE InsertDonation;
+GO
+IF OBJECT_ID('GetAllDonations', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllDonations;
+GO
+IF OBJECT_ID('GetDonationByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetDonationByID;
+GO
+IF OBJECT_ID('UpdateDonation', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateDonation;
+GO
+IF OBJECT_ID('DeleteDonation', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteDonation;
+GO
+
+-- 1. Insert a Donation (Create)
+CREATE PROCEDURE InsertDonation
+    @DonorID INT,
+    @Amount DECIMAL(10,2),
+    @PaymentMethod NVARCHAR(50),
+    @DonationDate DATETIME = NULL
+AS
+BEGIN
+    IF @DonationDate IS NULL
+        SET @DonationDate = GETDATE();
+
+    INSERT INTO Donations (DonorID, Amount, PaymentMethod, DonationDate)
+    VALUES (@DonorID, @Amount, @PaymentMethod, @DonationDate);
+END;
+GO
+
+-- 2. Retrieve All Donations (Read)
+CREATE PROCEDURE GetAllDonations
+AS
+BEGIN
+    SELECT * FROM Donations;
+END;
+GO
+
+-- 3. Retrieve a Specific Donation by ID (Read)
+CREATE PROCEDURE GetDonationByID
+    @DonationID INT
+AS
+BEGIN
+    SELECT * FROM Donations WHERE DonationID = @DonationID;
+END;
+GO
+
+-- 4. Update a Donation (Update)
+CREATE PROCEDURE UpdateDonation
+    @DonationID INT,
+    @DonorID INT,
+    @Amount DECIMAL(10,2),
+    @PaymentMethod NVARCHAR(50),
+    @DonationDate DATETIME
+AS
+BEGIN
+    UPDATE Donations
+    SET DonorID = @DonorID,
+        Amount = @Amount,
+        PaymentMethod = @PaymentMethod,
+        DonationDate = @DonationDate
+    WHERE DonationID = @DonationID;
+END;
+GO
+
+-- 5. Delete a Donation (Delete)
+CREATE PROCEDURE DeleteDonation
+    @DonationID INT
+AS
+BEGIN
+    DELETE FROM Donations WHERE DonationID = @DonationID;
+END;
+GO
+
+-- Example Usage:
+-- EXEC InsertDonation 1, 200.00, 'Credit Card', NULL;
+-- EXEC GetAllDonations;
+-- EXEC GetDonationByID 1;
+-- EXEC UpdateDonation 1, 1, 250.00, 'Debit Card', '2025-03-11 12:00:00';
+-- EXEC DeleteDonation 1;
+
+
+-- Use the CharityDB database
+USE CharityDB;
+GO
+
+-- Drop existing table if it exists (optional)
+IF OBJECT_ID('Beneficiaries', 'U') IS NOT NULL
+    DROP TABLE Beneficiaries;
+GO
+
+-- Create Beneficiaries table
+CREATE TABLE Beneficiaries (
+    BeneficiaryID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Phone NVARCHAR(20),
+    Address NVARCHAR(MAX),
+    AidReceived DECIMAL(10,2) DEFAULT 0.00,
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Drop existing stored procedures if they exist
+IF OBJECT_ID('InsertBeneficiary', 'P') IS NOT NULL
+    DROP PROCEDURE InsertBeneficiary;
+GO
+IF OBJECT_ID('GetAllBeneficiaries', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllBeneficiaries;
+GO
+IF OBJECT_ID('GetBeneficiaryByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetBeneficiaryByID;
+GO
+IF OBJECT_ID('UpdateBeneficiary', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateBeneficiary;
+GO
+IF OBJECT_ID('DeleteBeneficiary', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteBeneficiary;
+GO
+
+-- 1. Insert a Beneficiary (Create)
+CREATE PROCEDURE InsertBeneficiary
+    @Name NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Address NVARCHAR(MAX),
+    @AidReceived DECIMAL(10,2)
+AS
+BEGIN
+    INSERT INTO Beneficiaries (Name, Phone, Address, AidReceived)
+    VALUES (@Name, @Phone, @Address, @AidReceived);
+END;
+GO
+
+-- 2. Retrieve All Beneficiaries (Read)
+CREATE PROCEDURE GetAllBeneficiaries
+AS
+BEGIN
+    SELECT * FROM Beneficiaries;
+END;
+GO
+
+-- 3. Retrieve a Specific Beneficiary by ID (Read)
+CREATE PROCEDURE GetBeneficiaryByID
+    @BeneficiaryID INT
+AS
+BEGIN
+    SELECT * FROM Beneficiaries WHERE BeneficiaryID = @BeneficiaryID;
+END;
+GO
+
+-- 4. Update a Beneficiary (Update)
+CREATE PROCEDURE UpdateBeneficiary
+    @BeneficiaryID INT,
+    @Name NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Address NVARCHAR(MAX),
+    @AidReceived DECIMAL(10,2)
+AS
+BEGIN
+    UPDATE Beneficiaries
+    SET Name = @Name,
+        Phone = @Phone,
+        Address = @Address,
+        AidReceived = @AidReceived
+    WHERE BeneficiaryID = @BeneficiaryID;
+END;
+GO
+
+-- 5. Delete a Beneficiary (Delete)
+CREATE PROCEDURE DeleteBeneficiary
+    @BeneficiaryID INT
+AS
+BEGIN
+    DELETE FROM Beneficiaries WHERE BeneficiaryID = @BeneficiaryID;
+END;
+GO
+
+-- Example Usage:
+-- EXEC InsertBeneficiary 'Alice Johnson', '9876543210', '789 Road, City', 500.00;
+-- EXEC GetAllBeneficiaries;
+-- EXEC GetBeneficiaryByID 1;
+-- EXEC UpdateBeneficiary 1, 'Alice Johnson', '9876543211', '890 Street, City', 600.00;
+-- EXEC DeleteBeneficiary 1;
+
+
+
+
+-- Use the CharityDB database
+USE CharityDB;
+GO
+
+-- Drop existing table if it exists (optional)
+IF OBJECT_ID('Volunteers', 'U') IS NOT NULL
+    DROP TABLE Volunteers;
+GO
+
+-- Create Volunteers table
+CREATE TABLE Volunteers (
+    VolunteerID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Email NVARCHAR(255) UNIQUE,
+    Phone NVARCHAR(20),
+    Skills NVARCHAR(MAX),
+    Availability NVARCHAR(100),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Drop existing stored procedures if they exist
+IF OBJECT_ID('InsertVolunteer', 'P') IS NOT NULL
+    DROP PROCEDURE InsertVolunteer;
+GO
+IF OBJECT_ID('GetAllVolunteers', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllVolunteers;
+GO
+IF OBJECT_ID('GetVolunteerByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetVolunteerByID;
+GO
+IF OBJECT_ID('UpdateVolunteer', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateVolunteer;
+GO
+IF OBJECT_ID('DeleteVolunteer', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteVolunteer;
+GO
+
+-- 1. Insert a Volunteer (Create)
+CREATE PROCEDURE InsertVolunteer
+    @Name NVARCHAR(255),
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Skills NVARCHAR(MAX),
+    @Availability NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO Volunteers (Name, Email, Phone, Skills, Availability)
+    VALUES (@Name, @Email, @Phone, @Skills, @Availability);
+END;
+GO
+
+-- 2. Retrieve All Volunteers (Read)
+CREATE PROCEDURE GetAllVolunteers
+AS
+BEGIN
+    SELECT * FROM Volunteers;
+END;
+GO
+
+-- 3. Retrieve a Specific Volunteer by ID (Read)
+CREATE PROCEDURE GetVolunteerByID
+    @VolunteerID INT
+AS
+BEGIN
+    SELECT * FROM Volunteers WHERE VolunteerID = @VolunteerID;
+END;
+GO
+
+-- 4. Update a Volunteer (Update)
+CREATE PROCEDURE UpdateVolunteer
+    @VolunteerID INT,
+    @Name NVARCHAR(255),
+    @Email NVARCHAR(255),
+    @Phone NVARCHAR(20),
+    @Skills NVARCHAR(MAX),
+    @Availability NVARCHAR(100)
+AS
+BEGIN
+    UPDATE Volunteers
+    SET Name = @Name,
+        Email = @Email,
+        Phone = @Phone,
+        Skills = @Skills,
+        Availability = @Availability
+    WHERE VolunteerID = @VolunteerID;
+END;
+GO
+
+-- 5. Delete a Volunteer (Delete)
+CREATE PROCEDURE DeleteVolunteer
+    @VolunteerID INT
+AS
+BEGIN
+    DELETE FROM Volunteers WHERE VolunteerID = @VolunteerID;
+END;
+GO
+
+-- Example Usage:
+-- EXEC InsertVolunteer 'Michael Smith', 'michael@example.com', '1234567890', 'Teaching, First Aid', 'Weekends';
+-- EXEC GetAllVolunteers;
+-- EXEC GetVolunteerByID 1;
+-- EXEC UpdateVolunteer 1, 'Michael Smith', 'michael.smith@example.com', '9876543210', 'Teaching, First Aid, Cooking', 'Weekdays';
+-- EXEC DeleteVolunteer 1;
+
+
+
+
+
+-- Use the CharityDB database
+USE CharityDB;
+GO
+
+-- Drop existing tables if they exist (optional)
+IF OBJECT_ID('Expenses', 'U') IS NOT NULL
+    DROP TABLE Expenses;
+GO
+IF OBJECT_ID('Events', 'U') IS NOT NULL
+    DROP TABLE Events;
+GO
+
+-- Create Events table
+CREATE TABLE Events (
+    EventID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(255) NOT NULL,
+    Description NVARCHAR(MAX),
+    EventDate DATETIME,
+    Location NVARCHAR(255),
+    Budget DECIMAL(10,2),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Create Expenses table
+CREATE TABLE Expenses (
+    ExpenseID INT IDENTITY(1,1) PRIMARY KEY,
+    EventID INT,
+    Description NVARCHAR(MAX),
+    Amount DECIMAL(10,2) NOT NULL,
+    ExpenseDate DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (EventID) REFERENCES Events(EventID) ON DELETE SET NULL
+);
+GO
+
+-- Drop existing stored procedures if they exist
+-- Events Procedures
+IF OBJECT_ID('InsertEvent', 'P') IS NOT NULL
+    DROP PROCEDURE InsertEvent;
+GO
+IF OBJECT_ID('GetAllEvents', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllEvents;
+GO
+IF OBJECT_ID('GetEventByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetEventByID;
+GO
+IF OBJECT_ID('UpdateEvent', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateEvent;
+GO
+IF OBJECT_ID('DeleteEvent', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteEvent;
+GO
+
+-- Expenses Procedures
+IF OBJECT_ID('InsertExpense', 'P') IS NOT NULL
+    DROP PROCEDURE InsertExpense;
+GO
+IF OBJECT_ID('GetAllExpenses', 'P') IS NOT NULL
+    DROP PROCEDURE GetAllExpenses;
+GO
+IF OBJECT_ID('GetExpenseByID', 'P') IS NOT NULL
+    DROP PROCEDURE GetExpenseByID;
+GO
+IF OBJECT_ID('UpdateExpense', 'P') IS NOT NULL
+    DROP PROCEDURE UpdateExpense;
+GO
+IF OBJECT_ID('DeleteExpense', 'P') IS NOT NULL
+    DROP PROCEDURE DeleteExpense;
+GO
+
+-- 1. Insert an Event (Create)
+CREATE PROCEDURE InsertEvent
+    @Name NVARCHAR(255),
+    @Description NVARCHAR(MAX),
+    @EventDate DATETIME,
+    @Location NVARCHAR(255),
+    @Budget DECIMAL(10,2)
+AS
+BEGIN
+    INSERT INTO Events (Name, Description, EventDate, Location, Budget)
+    VALUES (@Name, @Description, @EventDate, @Location, @Budget);
+END;
+GO
+
+-- 2. Retrieve All Events (Read)
+CREATE PROCEDURE GetAllEvents
+AS
+BEGIN
+    SELECT * FROM Events;
+END;
+GO
+
+-- 3. Retrieve a Specific Event by ID (Read)
+CREATE PROCEDURE GetEventByID
+    @EventID INT
+AS
+BEGIN
+    SELECT * FROM Events WHERE EventID = @EventID;
+END;
+GO
+
+-- 4. Update an Event (Update)
+CREATE PROCEDURE UpdateEvent
+    @EventID INT,
+    @Name NVARCHAR(255),
+    @Description NVARCHAR(MAX),
+    @EventDate DATETIME,
+    @Location NVARCHAR(255),
+    @Budget DECIMAL(10,2)
+AS
+BEGIN
+    UPDATE Events
+    SET Name = @Name,
+        Description = @Description,
+        EventDate = @EventDate,
+        Location = @Location,
+        Budget = @Budget
+    WHERE EventID = @EventID;
+END;
+GO
+
+-- 5. Delete an Event (Delete)
+CREATE PROCEDURE DeleteEvent
+    @EventID INT
+AS
+BEGIN
+    DELETE FROM Events WHERE EventID = @EventID;
+END;
+GO
+
+-- 6. Insert an Expense (Create)
+CREATE PROCEDURE InsertExpense
+    @EventID INT,
+    @Description NVARCHAR(MAX),
+    @Amount DECIMAL(10,2),
+    @ExpenseDate DATETIME = NULL
+AS
+BEGIN
+    IF @ExpenseDate IS NULL
+        SET @ExpenseDate = GETDATE();
+
+    INSERT INTO Expenses (EventID, Description, Amount, ExpenseDate)
+    VALUES (@EventID, @Description, @Amount, @ExpenseDate);
+END;
+GO
+
+-- 7. Retrieve All Expenses (Read)
+CREATE PROCEDURE GetAllExpenses
+AS
+BEGIN
+    SELECT * FROM Expenses;
+END;
+GO
+
+-- 8. Retrieve a Specific Expense by ID (Read)
+CREATE PROCEDURE GetExpenseByID
+    @ExpenseID INT
+AS
+BEGIN
+    SELECT * FROM Expenses WHERE ExpenseID = @ExpenseID;
+END;
+GO
+
+-- 9. Update an Expense (Update)
+CREATE PROCEDURE UpdateExpense
+    @ExpenseID INT,
+    @EventID INT,
+    @Description NVARCHAR(MAX),
+    @Amount DECIMAL(10,2),
+    @ExpenseDate DATETIME
+AS
+BEGIN
+    UPDATE Expenses
+    SET EventID = @EventID,
+        Description = @Description,
+        Amount = @Amount,
+        ExpenseDate = @ExpenseDate
+    WHERE ExpenseID = @ExpenseID;
+END;
+GO
+
+-- 10. Delete an Expense (Delete)
+CREATE PROCEDURE DeleteExpense
+    @ExpenseID INT
+AS
+BEGIN
+    DELETE FROM Expenses WHERE ExpenseID = @ExpenseID;
+END;
+GO
+
+-- Example Usage:
+-- EXEC InsertEvent 'Fundraiser Gala', 'Annual charity fundraising event', '2025-04-15 18:00:00', 'Grand Hall, City', 10000.00;
+-- EXEC GetAllEvents;
+-- EXEC GetEventByID 1;
+-- EXEC UpdateEvent 1, 'Fundraiser Gala', 'Updated description', '2025-04-15 18:30:00', 'Grand Hall, Downtown', 12000.00;
+-- EXEC DeleteEvent 1;
+
+-- EXEC InsertExpense 1, 'Venue Rental', 5000.00, NULL;
+-- EXEC GetAllExpenses;
+-- EXEC GetExpenseByID 1;
+-- EXEC UpdateExpense 1, 1, 'Updated Venue Rental', 5500.00, '2025-04-10 12:00:00';
+-- EXEC DeleteExpense 1;
+
+
